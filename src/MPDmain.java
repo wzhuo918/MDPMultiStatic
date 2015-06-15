@@ -1,4 +1,5 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -14,9 +15,10 @@ import java.util.Map;
 public class MPDmain {
 	public int PNUM = 40;
 	public Map<Integer, Integer> counter = new HashMap<Integer, Integer>();
-	public int[] Sampletable = new int[PNUM];
+	//二维数组，第一行
+	public int[][] Sampletable = new int[3][PNUM];
 	public int[] ReduceLoad = new int[4];
-	
+
 	public int TOTALNUM = 25000;
 	public int samplenum = 0;
 
@@ -32,11 +34,11 @@ public class MPDmain {
 		//String tempString =null;
 		int input = 0;
 
-
 		//init MDP.state and MDP.action
 		for (int i = 0; i < State.length; i++) {
 			State[i] = i;
 			Action[i] = i;
+
 			//System.out.println(State[i]);
 		}
 
@@ -52,21 +54,24 @@ public class MPDmain {
 				if (counter.containsKey(hashcodenum)) {
 					int tempvalue = counter.get(hashcodenum);
 					counter.put(hashcodenum, tempvalue + 1);
-					Sampletable[hashcodenum] = tempvalue + 1;
+					Sampletable[1][hashcodenum] = tempvalue + 1;
 				} else {
 					counter.put(hashcodenum, 1);
-					Sampletable[hashcodenum] = 1;
+					Sampletable[0][hashcodenum] = hashcodenum;
+					Sampletable[1][hashcodenum] = 1;
 				}
 				//System.out.println("Counter = " + counter);
 				samplenum++;
 
 				//sample = 10%TOTALNUM, begin MDP
-				if (samplenum > TOTALNUM / 10) {
-					mdp();
-
-				}
+				//				if (samplenum > TOTALNUM / 10) {
+				//					mdp();
+				//
+				//				}
 
 			}
+
+			mdp();
 
 			//按照hash值写入文件
 			String outstring = String.valueOf(counter);
@@ -77,17 +82,20 @@ public class MPDmain {
 			System.out.println("outstring = " + outstring);
 
 			FileWriter writer = new FileWriter("/home/wzhuo/example/mdp/out.txt");
+			BufferedWriter bw = new BufferedWriter(writer);
+
 			for (int i = 0; i < outar.length; i++) {
 				if (i == 0) {
-					writer.write(outar[i]);
-				} else {
-					outar[i] = outar[i].substring(1, outar[i].length() - 1);
-					writer.write(outar[i]);
-				}
-				writer.write('\r');
-			}
+					//System.out.println("outar[ "+i+"]=" + outar[i]);
+					bw.write(outar[i] + '\r');
 
-			writer.close();
+				} else {
+					//System.out.println("outar["+i+"]=" + outar[i]);
+					outar[i] = outar[i].substring(1, outar[i].length());
+					bw.write(outar[i] + '\r');
+				}
+			}
+			bw.close();
 
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
@@ -99,9 +107,48 @@ public class MPDmain {
 	//MDP
 	public void mdp() {
 		int value[] = new int[PNUM];
-		
-		
-		
+
+		//		for (int i = 0; i < Sampletable.length; i++) {
+		//		for (int j = 0; j < Sampletable[i].length; j++) {
+		//			System.out.println("Sampletable = " + Sampletable[i][j]);
+		//		}
+		//	}
+
+		for (int i = 0; i < Sampletable[1].length; i++) {
+			int maxid = Sampletable[0][i];
+			int maxnum = Sampletable[1][i];
+			int maxdid  = 0 ;
+
+			for (int j = i+1 ; j < Sampletable[1].length; j++) {
+				if (maxnum < Sampletable[1][j]) {
+					maxid = Sampletable[0][j];
+					maxnum = Sampletable[1][j];
+					maxdid = j;
+				}
+			}
+
+			int tempval = 0;
+
+			if (maxid != Sampletable[0][i]) {
+				tempval = Sampletable[1][i];
+				Sampletable[0][maxdid] = Sampletable[0][i];
+				Sampletable[1][maxdid] = tempval;
+				
+				Sampletable[0][i] = maxid;
+				Sampletable[1][i] = maxnum;
+
+				
+			} else {
+				continue;
+			}
+		}
+
+		for (int i = 0; i < Sampletable.length; i++) {
+			for (int j = 0; j < Sampletable[1].length; j++) {
+				System.out.println("Sampletable[" + i + "][" + j + "]=" + Sampletable[i][j]);
+			}
+		}
+
 	}
 
 	public static void main(String[] args) throws IOException {

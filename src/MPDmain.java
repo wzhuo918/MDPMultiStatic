@@ -20,24 +20,26 @@ import java.util.List;
 import java.util.Map;
 
 public class MPDmain {
-	public int PNUM = 100;
+	public int PNUM = 200;
 	public Map<Integer, Integer> counter = new HashMap<Integer, Integer>();
 	//二维数组，第一行
 	public int[][] Sampletable = new int[3][PNUM];
 	public int[] ReduceLoad = new int[4];
 	public int[] ReduceLoad_Hash = new int[4];
 
-	public long TOTALNUM = 100000;
-	public long Samplenum = 0;
-	public long AssPnum = 0;
-	public long unAssPnum = 0;
+	public int TOTALNUM = 100000;
+	public int Samplenum = 0;
+	public int AssPnum = 0;
+	public int unAssPnum = 0;
+	public int npAssPnum = 0;
+	public int npunAssPnum = 0;
+	public int npro = 0;
 	
-	public long UNAssiPNUM = -1;
+	public int UNAssiPNUM = -1;
 
 
-	public double bbeta = 0.0;
-	public double abeta = 0.0;
-	public double incre = 0.0;
+	public int bbeta = 0;
+	public int abeta = 0;
 	public double nbbeta = 0.0;
 	
 
@@ -113,21 +115,21 @@ public class MPDmain {
 				 * the moment to decide to mdp samplenum = 10%TOTALNUM, begin
 				 * MDP
 				 */
-				bbeta = (double)Samplenum / TOTALNUM;
+				bbeta = Samplenum;
 				//System.out.println("bbeta = " + bbeta);
-				nbbeta = (double) (TOTALNUM - Samplenum) / TOTALNUM;
-				System.out.println("nbbeta = " + nbbeta + "unAssignedPar.size() = " + unAssignedPar.size());
+				//nbbeta = (double) (TOTALNUM - Samplenum) / TOTALNUM;
+				//System.out.println("nbbeta = " + nbbeta + "unAssignedPar.size() = " + unAssignedPar.size());
 				
-				double sss= unAssignedPar.size()/PNUM;
+				//double sss= unAssignedPar.size()/PNUM;
 				
 				
-				if ((Samplenum > Math.round((double) (TOTALNUM * 0.4))) &&  ((bbeta - abeta) > 0.3) && unAssignedPar.size()>0) {
+				if ((Samplenum > Math.round((double) (TOTALNUM * 0.4)))  && ((bbeta - abeta) > Math.round((double) (TOTALNUM * 0.1)))  && unAssignedPar.size() > 0){
 					//System.out.println("Samplenum = " + Samplenum);
-					abeta = (double)Samplenum / TOTALNUM;
+					abeta = Samplenum;
 					mdp();
 				}
 				else{
-					if((unAssignedPar.size() > 0) && (Samplenum == TOTALNUM)){
+					if((unAssignedPar.size() > 0) && (bbeta == TOTALNUM)){
 						mdp();
 					}
 					
@@ -198,7 +200,8 @@ public class MPDmain {
 			String[] outar = outstring.split(",");
 			System.out.println("outstring = " + outstring);
 
-			FileWriter writer = new FileWriter("/home/wzhuo/example/mdp/out.txt");
+			//FileWriter writer = new FileWriter("/home/wzhuo/example/mdp/out.txt");
+			FileWriter writer = new FileWriter("D:/out.txt");
 			BufferedWriter bw = new BufferedWriter(writer);
 
 			for (int i = 0; i < outar.length; i++) {
@@ -264,9 +267,6 @@ public class MPDmain {
 		}
 
 		/** caculate each Evalue */
-		double[] EvalueArray = new double[PNUM];
-		double problity = 0;
-
 		AssPnum = 0;
 		unAssPnum = 0;
 
@@ -305,16 +305,69 @@ public class MPDmain {
 			//PAsUna = (double) AssPnum / unAssPnum;
 			//System.out.println("AssPnum=" + AssPnum + "   unAssPnum=" + unAssPnum + "   Samplenum" + Samplenum);
 
-			if(i < UNAssiPNUM){
-				problity = (double) unAssPnum / (TOTALNUM - Samplenum - AssPnum);
-				DecimalFormat df = new DecimalFormat("#.000000");
-				//System.out.println("Sampletable=" + df.format(problity));
-
-				EvalueArray[i] = problity * (TOTALNUM - Samplenum - unAssPnum);
-				//System.out.println("EvalueArray=" + EvalueArray[i]);
-			}
-			
+//			npro = TOTALNUM - Samplenum;
+//			
+//			double x = AssPnum / Samplenum;
+//			
+//			npAssPnum = Math.round(x * npro);
+//			
+//			
+//			npunAssPnum = npro -npAssPnum;
+//			//npAssPnum;
+//			
+//			//npunAssPnum;
+//			
+//			if(i < UNAssiPNUM){
+//				problity = (double) unAssPnum / (TOTALNUM  - Samplenum );
+//				DecimalFormat df = new DecimalFormat("#.000000");
+//				System.out.println("problity=" + df.format(problity));
+//
+//				EvalueArray[i] = problity * (TOTALNUM  - unAssPnum - AssPnum - npAssPnum - npunAssPnum) + (TOTALNUM-unAssPnum)*0.8;
+//				System.out.println("EvalueArray=" + EvalueArray[i]);
+//			}
 		}
+		
+		//尝试分配并计算Evaluation的值
+		double[] EvalueArray = new double[UNAssiPNUM];
+		double problity = 0;
+		
+		int readyAssP = 0;
+		int readyAssVal = 0;
+		int aloAssV = 0;
+		int totalass = 0;
+
+		npro = TOTALNUM - Samplenum;
+		double x = AssPnum / Samplenum;
+		npAssPnum = (int) Math.round(x * npro);
+		npunAssPnum = npro -npAssPnum;
+		
+		for(int i=0; i<EvalueArray.length; i++){
+			readyAssP = unAssignedPar.get(i);
+			
+			for (int j = 0; j < PNUM; j++) {
+				if (j == readyAssP) {
+					readyAssVal = j;
+					break;
+				}
+			}
+			aloAssV += Sampletable[1][readyAssVal];
+			
+			totalass = Samplenum - AssPnum - aloAssV;
+			
+			
+			problity = (double) (aloAssV + npunAssPnum) / (TOTALNUM  - AssPnum );
+			DecimalFormat df = new DecimalFormat("#.000000");
+			//System.out.println("problity=" + df.format(problity));
+			
+			//df.format(problity);
+			
+			EvalueArray[i] = problity * ( TOTALNUM - aloAssV - AssPnum)  ;
+			//System.out.println("EvalueArray=" + EvalueArray[i]);
+		}
+		
+		
+		
+		
 
 		/** caculate the max value */
 		double maxVal = 0.0;
@@ -327,11 +380,11 @@ public class MPDmain {
 		}
 		System.out.println("maxVal=" + maxVal + "  maxAct=" + maxAct +"  UNAssiPNUM="+UNAssiPNUM);
 		
-		if((UNAssiPNUM) <= 4){
+		if((UNAssiPNUM-maxAct) <= 4){
 			maxAct = UNAssiPNUM;
 		}
 
-		if(maxAct  > UNAssiPNUM){
+		if(Samplenum > Math.round((double) (TOTALNUM * 0.95) )){
 			maxAct = UNAssiPNUM;
 		}
 		
@@ -346,7 +399,7 @@ public class MPDmain {
 					ReduceLoad[i] += Sampletable[1][j];
 				}
 			}
-			System.out.println("FirstReduceLoad["+i+"]="+ReduceLoad[i]);
+			//System.out.println("FirstReduceLoad["+i+"]="+ReduceLoad[i]);
 		}
 		
 		
@@ -377,9 +430,9 @@ public class MPDmain {
 						minRnum = j;
 					}
 				}
-				System.out.println("ReduceLoad["+minRnum+"]="+ReduceLoad[minRnum]);
-				ReduceLoad[minRnum] += Sampletable[1][getPround];
 				
+				ReduceLoad[minRnum] += Sampletable[1][getPround];
+				//System.out.println("ReduceLoad["+minRnum+"]="+ReduceLoad[minRnum]);
 				
 				
 
@@ -387,7 +440,7 @@ public class MPDmain {
 				unAssignedPar.remove(0);
 				AssignedPar.add(ungetPround);
 				
-				System.out.println("unAssignedPar"+unAssignedPar);
+				//System.out.println("unAssignedPar"+unAssignedPar);
 			}
 		}
 		
@@ -406,13 +459,13 @@ public class MPDmain {
 		
 		
 		
-		if(maxAct == 0){
-			for(int i=0; i<unAssignedPar.size();i++){
-				AssignedPar.add(unAssignedPar.get(0));
-				unAssignedPar.remove(0);
-				//Sampletable[2][getPround] = 1;
-			}
-		}
+//		if(maxAct == 0){
+//			for(int i=0; i<unAssignedPar.size();i++){
+//				AssignedPar.add(unAssignedPar.get(0));
+//				unAssignedPar.remove(0);
+//				//Sampletable[2][getPround] = 1;
+//			}
+//		}
 
 		
 		
@@ -427,7 +480,8 @@ public class MPDmain {
 		// TODO Auto-generated method stub
 
 		MPDmain mpd = new MPDmain();
-		mpd.readFileByLines("/home/wzhuo/example/mdp/zipf7.txt");
+		//mpd.readFileByLines("/home/wzhuo/example/mdp/zipf7.txt");
+		mpd.readFileByLines("D:/zipf8.txt");
 
 	}
 

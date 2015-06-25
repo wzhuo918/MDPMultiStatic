@@ -37,11 +37,10 @@ public class MPDmain {
 	
 	public int UNAssiPNUM = -1;
 
-
 	public int bbeta = 0;
 	public int abeta = 0;
-	public double nbbeta = 0.0;
 	
+	boolean oncetime = true;  //一次分配完成的实验
 
 	public List<Integer> AssignedPar = new LinkedList<Integer>();
 	public List<Integer> unAssignedPar = new LinkedList<Integer>();
@@ -116,16 +115,11 @@ public class MPDmain {
 				 * MDP
 				 */
 				bbeta = Samplenum;
-				//System.out.println("bbeta = " + bbeta);
-				//nbbeta = (double) (TOTALNUM - Samplenum) / TOTALNUM;
-				//System.out.println("nbbeta = " + nbbeta + "unAssignedPar.size() = " + unAssignedPar.size());
 				
-				//double sss= unAssignedPar.size()/PNUM;
-				
-				
-				if ((Samplenum > Math.round((double) (TOTALNUM * 0.4)))  && ((bbeta - abeta) > Math.round((double) (TOTALNUM * 0.1)))  && unAssignedPar.size() > 0){
+				if ((Samplenum > Math.round((double) (TOTALNUM * 0.3)))  && ((bbeta - abeta) > Math.round((double) (TOTALNUM * 0.1)))  && unAssignedPar.size() > 0){
 					//System.out.println("Samplenum = " + Samplenum);
 					abeta = Samplenum;
+					oncetime = false;
 					mdp();
 				}
 				else{
@@ -305,26 +299,6 @@ public class MPDmain {
 			//PAsUna = (double) AssPnum / unAssPnum;
 			//System.out.println("AssPnum=" + AssPnum + "   unAssPnum=" + unAssPnum + "   Samplenum" + Samplenum);
 
-//			npro = TOTALNUM - Samplenum;
-//			
-//			double x = AssPnum / Samplenum;
-//			
-//			npAssPnum = Math.round(x * npro);
-//			
-//			
-//			npunAssPnum = npro -npAssPnum;
-//			//npAssPnum;
-//			
-//			//npunAssPnum;
-//			
-//			if(i < UNAssiPNUM){
-//				problity = (double) unAssPnum / (TOTALNUM  - Samplenum );
-//				DecimalFormat df = new DecimalFormat("#.000000");
-//				System.out.println("problity=" + df.format(problity));
-//
-//				EvalueArray[i] = problity * (TOTALNUM  - unAssPnum - AssPnum - npAssPnum - npunAssPnum) + (TOTALNUM-unAssPnum)*0.8;
-//				System.out.println("EvalueArray=" + EvalueArray[i]);
-//			}
 		}
 		
 		//尝试分配并计算Evaluation的值
@@ -402,8 +376,10 @@ public class MPDmain {
 			//System.out.println("FirstReduceLoad["+i+"]="+ReduceLoad[i]);
 		}
 		
-		
-		
+		//一次分配完成的实验
+//		if(oncetime == false){
+//			maxAct = unAssignedPar.size();
+//		}
 		
 		/** assign P in this round */
 		int getPround = -1;
@@ -457,23 +433,9 @@ public class MPDmain {
 		System.out.println("RRRRRavr = " + Math.sqrt(Ravr));
 		
 		
-		
-		
-//		if(maxAct == 0){
-//			for(int i=0; i<unAssignedPar.size();i++){
-//				AssignedPar.add(unAssignedPar.get(0));
-//				unAssignedPar.remove(0);
-//				//Sampletable[2][getPround] = 1;
-//			}
-//		}
-
-		
-		
-		
 //		for (int i = 0; i < Sampletable[2].length; i++) {
 //			System.out.println("Sampletable[2]" + Sampletable[2][i]);
 //		}
-
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -481,7 +443,7 @@ public class MPDmain {
 
 		MPDmain mpd = new MPDmain();
 		//mpd.readFileByLines("/home/wzhuo/example/mdp/zipf7.txt");
-		mpd.readFileByLines("D:/zipf8.txt");
+		mpd.readFileByLines("D:/zipf7.txt");
 
 	}
 
